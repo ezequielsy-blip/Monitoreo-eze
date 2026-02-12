@@ -1,43 +1,53 @@
 import streamlit as st
 import socket
+import pandas as pd
 
-# Configuración de la App
-st.set_page_config(page_title="Monitoreo Eze", page_icon="🎼")
+# Configuración estética
+st.set_page_config(page_title="Monitoreo Eze", page_icon="🎼", layout="wide")
 
-st.title("🎚️ Monitoreo Eze")
-st.subheader("Control de Mezcla & Buscador de Red")
+st.markdown("""
+    <style>
+    .main { background-color: #0e1117; color: white; }
+    .stSlider { margin-bottom: 25px; }
+    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #1E90FF; color: white; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# --- SECCIÓN 1: LOS SLIDERS ---
-st.write("### Ajuste de Volúmenes")
-col1, col2 = st.columns(2)
-with col1:
-    v_voz = st.slider("VOZ", 0, 100, 50)
-    v_gtr = st.slider("GUITARRA", 0, 100, 50)
-with col2:
-    v_bajo = st.slider("BAJO", 0, 100, 50)
-    v_bat = st.slider("BATERÍA", 0, 100, 50)
+st.title("🎼 Sistema de Monitoreo - Eze")
+
+# --- BUSCADOR DE DISPOSITIVOS ---
+with st.expander("🔍 BUSCAR NETBOOK EN LA RED", expanded=True):
+    if st.button("ESCANEAR WI-FI"):
+        try:
+            # Obtiene la IP base de tu red
+            hostname = socket.gethostname()
+            ip_propia = socket.gethostbyname(hostname)
+            st.write(f"Tu IP: **{ip_propia}**")
+            
+            # Simulación de detección de la Netbook (esto se conecta con tu script de PC)
+            st.success("✅ Netbook 'LOGISTICA' detectada en 192.168.1.50")
+        except:
+            st.error("No se pudo escanear. Verificá que el Wi-Fi sea el mismo.")
 
 st.divider()
 
-# --- SECCIÓN 2: BUSCADOR DE DISPOSITIVOS ---
-st.write("### Conexión con Netbook")
+# --- MEZCLADORA DE CANALES ---
+st.subheader("🎚️ Mezcla de Monitoreo")
+col1, col2 = st.columns(2)
 
-if st.button("ESCANEAR RED WI-FI", use_container_width=True):
-    with st.spinner("Buscando dispositivos en tu red..."):
-        try:
-            # Intentamos obtener la IP local del celu para saber el rango
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip_local = s.getsockname()[0]
-            s.close()
-            
-            st.write(f"Tu IP actual: `{ip_local}`")
-            st.success("Búsqueda finalizada: Se detectó la Netbook de Eze en la red.")
-            # Aquí en el futuro agregaremos la lista real de IPs encontradas
-        except Exception as e:
-            st.error("No se pudo escanear. Asegurate de estar en el mismo Wi-Fi.")
+with col1:
+    v1 = st.slider("🎤 VOZ PRINCIPAL", 0, 100, 70)
+    v2 = st.slider("🎸 GUITARRA", 0, 100, 50)
+    v3 = st.slider("🎹 TECLADOS", 0, 100, 40)
 
-# --- BOTÓN DE ENVÍO ---
-if st.button("ENVIAR MEZCLA A REAPER", type="primary", use_container_width=True):
+with col2:
+    v4 = st.slider("🎸 BAJO", 0, 100, 60)
+    v5 = st.slider("🥁 BATERÍA", 0, 100, 80)
+    v6 = st.slider("📣 COROS", 0, 100, 30)
+
+# --- PANEL DE CONTROL ---
+st.divider()
+if st.button("🚀 ENVIAR A REAPER"):
     st.balloons()
-    st.info(f"Enviando niveles a la PC...")
+    st.toast("Mezcla enviada a la Netbook...")
+    # Aquí es donde el link de Streamlit mandaría los datos a tu archivo APP_STOCK.PY
