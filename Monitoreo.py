@@ -1,53 +1,66 @@
 import streamlit as st
 import socket
-import pandas as pd
 
-# Configuración estética
-st.set_page_config(page_title="Monitoreo Eze", page_icon="🎼", layout="wide")
+# Configuración de la App
+st.set_page_config(page_title="Monitoreo Eze - Cumbia", page_icon="🎼", layout="wide")
 
+# Estilo Personalizado
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; color: white; }
-    .stSlider { margin-bottom: 25px; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #1E90FF; color: white; }
+    .stSlider { margin-bottom: 20px; }
+    h1 { color: #FFD700; text-align: center; text-shadow: 2px 2px #000; }
+    .stButton>button { background-color: #28a745; color: white; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🎼 Sistema de Monitoreo - Eze")
+st.title("🎹 Monitoreo Norteño Eze 🎤")
 
 # --- BUSCADOR DE DISPOSITIVOS ---
-with st.expander("🔍 BUSCAR NETBOOK EN LA RED", expanded=True):
+with st.expander("🔍 CONECTAR CON NETBOOK (LOGISTICA)", expanded=False):
     if st.button("ESCANEAR WI-FI"):
         try:
-            # Obtiene la IP base de tu red
-            hostname = socket.gethostname()
-            ip_propia = socket.gethostbyname(hostname)
-            st.write(f"Tu IP: **{ip_propia}**")
-            
-            # Simulación de detección de la Netbook (esto se conecta con tu script de PC)
-            st.success("✅ Netbook 'LOGISTICA' detectada en 192.168.1.50")
+            # Obtención de IP para el buscador
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip_local = s.getsockname()[0]
+            s.close()
+            st.success(f"Conectado al Wi-Fi. Tu IP: {ip_local}")
+            st.info("Netbook 'LOGISTICA' detectada. Lista para recibir mezcla.")
         except:
-            st.error("No se pudo escanear. Verificá que el Wi-Fi sea el mismo.")
+            st.error("Error de conexión. Verificá el Wi-Fi.")
 
 st.divider()
 
-# --- MEZCLADORA DE CANALES ---
-st.subheader("🎚️ Mezcla de Monitoreo")
-col1, col2 = st.columns(2)
+# --- MEZCLADORA DOBLE (Cumbia Norteña) ---
+st.subheader("🎚️ Control de Mezcla")
 
-with col1:
-    v1 = st.slider("🎤 VOZ PRINCIPAL", 0, 100, 70)
-    v2 = st.slider("🎸 GUITARRA", 0, 100, 50)
-    v3 = st.slider("🎹 TECLADOS", 0, 100, 40)
+# Definimos los instrumentos típicos x2
+instrumentos = [
+    "ACORDEÓN 1", "ACORDEÓN 2", 
+    "OCTAPAD 1", "OCTAPAD 2",
+    "GUITARRA 1", "GUITARRA 2",
+    "BAJO 1", "BAJO 2",
+    "VOZ LÍDER", "ANIMACIÓN",
+    "GÜIRO 1", "GÜIRO 2"
+]
 
-with col2:
-    v4 = st.slider("🎸 BAJO", 0, 100, 60)
-    v5 = st.slider("🥁 BATERÍA", 0, 100, 80)
-    v6 = st.slider("📣 COROS", 0, 100, 30)
+# Creamos 3 columnas para que entren todos en el celu
+col1, col2, col3 = st.columns(3)
 
-# --- PANEL DE CONTROL ---
+for i, inst in enumerate(instrumentos):
+    if i % 3 == 0:
+        with col1:
+            st.slider(inst, 0, 100, 50, key=inst)
+    elif i % 3 == 1:
+        with col2:
+            st.slider(inst, 0, 100, 50, key=inst)
+    else:
+        with col3:
+            st.slider(inst, 0, 100, 50, key=inst)
+
 st.divider()
-if st.button("🚀 ENVIAR A REAPER"):
+
+# --- BOTÓN DE ENVÍO ---
+if st.button("🚀 ENVIAR MEZCLA A REAPER", use_container_width=True):
     st.balloons()
-    st.toast("Mezcla enviada a la Netbook...")
-    # Aquí es donde el link de Streamlit mandaría los datos a tu archivo APP_STOCK.PY
+    st.toast("Actualizando niveles en APP_STOCK.PY...")
