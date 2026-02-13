@@ -2,7 +2,7 @@ import streamlit as st
 import socket
 
 # Configuración de la App
-st.set_page_config(page_title="Monitoreo Eze - Full Cumbia", page_icon="🎼", layout="wide")
+st.set_page_config(page_title="Monitoreo enigma - Full Cumbia", page_icon="🎼", layout="wide")
 
 # Estilo para que se vea profesional en el celular
 st.markdown("""
