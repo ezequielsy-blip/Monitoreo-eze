@@ -36,11 +36,11 @@ st.subheader("🎚️ Consola de Mezcla")
 
 # Lista de instrumentos ampliada con los 3 coros
 instrumentos = [
-    "ACORDEÓN 1", "ACORDEÓN 2", 
+    "tecla 1", "tecla 2"
     "OCTAPAD 1", "OCTAPAD 2",
     "GUITARRA 1", "GUITARRA 2",
     "BAJO 1", "BAJO 2",
-    "VOZ LÍDER", "ANIMACIÓN",
+    "VOZ", "ANIMACIÓN",
     "GÜIRO 1", "GÜIRO 2",
     "CORO 1", "CORO 2", "CORO 3"
 ]
