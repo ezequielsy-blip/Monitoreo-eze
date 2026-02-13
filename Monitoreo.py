@@ -13,7 +13,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🎹 Monitoreo Norteño Eze 🎤")
+st.title("🎹 Monitoreo ENIGMA 🎤")
 
 # --- SECCIÓN DE CONEXIÓN (Buscador) ---
 with st.expander("🔍 CONECTAR CON NETBOOK (LOGISTICA)", expanded=False):
