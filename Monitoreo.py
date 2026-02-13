@@ -1,37 +1,24 @@
 import streamlit as st
 import socket
 
-st.title("🎹 Monitoreo ENIGMA")
+st.title("🎹 Monitoreo ENIGMA (Canal Directo)")
 
-# Función de conexión forzada
-def conectar_ya():
+# Sliders (Sin errores de definición)
+insts = ["TECLA 1", "OCTAPAD", "BAJO", "VOZ LÍDER"]
+valores = {i: st.slider(i, 0, 100, 50, key=i) for i in insts}
+
+if st.button("🚀 TRANSMITIR A LA BANDA", use_container_width=True):
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        s.settimeout(1.5)
-        # Grito universal
-        s.sendto("BUSCAR_CONSOLA_ENIGMA".encode(), ('<broadcast>', 5005))
-        data, addr = s.recvfrom(1024)
-        return addr[0]
-    except:
-        return None
-
-if st.button("🔍 CONECTAR AHORA"):
-    ip = conectar_ya()
-    if ip:
-        st.session_state['ip'] = ip
-        st.success(f"✅ ¡ENCONTRADO EN {ip}!")
-    else:
-        st.error("No se encuentra. REVISÁ QUE EL WI-FI ESTÉ PRENDIDO.")
-
-# Sliders definidos ANTES de usarlos para evitar el NameError
-insts = ["TECLA 1", "TECLA 2", "OCTAPAD 1", "BAJO 1", "VOZ"]
-vals = {i: st.slider(i, 0, 100, 50, key=i) for i in insts}
-
-if st.button("🚀 ENVIAR"):
-    ip_dest = st.session_state.get('ip')
-    if ip_dest:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        for k, v in vals.items():
-            sock.sendto(f"{k}:{v}".encode(), (ip_dest, 5005))
-        st.toast("Enviado")
+        MCAST_GRP = '224.1.1.1'
+        MCAST_PORT = 5007
+        
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        
+        for k, v in valores.items():
+            msg = f"{k}:{v}"
+            sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
+            
+        st.success("✅ Transmisión enviada al aire.")
+    except Exception as e:
+        st.error(f"Error de antena: {e}")
