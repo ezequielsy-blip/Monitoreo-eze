@@ -1,24 +1,34 @@
 import streamlit as st
 import socket
 
-st.title("🎹 Monitoreo ENIGMA (Canal Directo)")
+st.set_page_config(page_title="Selector ENIGMA", page_icon="🎧")
+st.title("🎧 Selector de Monitoreo ENIGMA")
 
-# Sliders (Sin errores de definición)
-insts = ["TECLA 1", "OCTAPAD", "BAJO", "VOZ LÍDER"]
-valores = {i: st.slider(i, 0, 100, 50, key=i) for i in insts}
+# Lista de canales disponibles en el Reaper
+canales = {
+    "CANAL 1: TECLAS": 1,
+    "CANAL 2: OCTAPAD": 2,
+    "CANAL 3: BAJO": 3,
+    "CANAL 4: GUITARRA": 4,
+    "CANAL 5: VOZ LÍDER": 5,
+    "CANAL 6: COROS": 6
+}
 
-if st.button("🚀 TRANSMITIR A LA BANDA", use_container_width=True):
+st.subheader("Seleccioná tu mezcla personal:")
+seleccion = st.selectbox("¿Quién sos hoy?", list(canales.keys()))
+
+if st.button("🔊 CONECTAR MI MONITOREO", use_container_width=True):
     try:
-        MCAST_GRP = '224.1.1.1'
-        MCAST_PORT = 5007
+        # Aquí la app le avisa a la Netbook qué canal rutear por el cable virtual
+        canal_id = canales[seleccion]
         
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        # IP de la Netbook (Asumiendo que estás en su Hotspot o Wi-Fi)
+        IP_NETBOOK = "192.168.43.1" 
         
-        for k, v in valores.items():
-            msg = f"{k}:{v}"
-            sock.sendto(msg.encode(), (MCAST_GRP, MCAST_PORT))
-            
-        st.success("✅ Transmisión enviada al aire.")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(f"SET_MONITOR_CHANNEL:{canal_id}".encode(), (IP_NETBOOK, 5005))
+        
+        st.success(f"✅ Escuchando {seleccion}. ¡Ponete los auriculares!")
+        st.info("Recordá tener AudioRelay abierto para recibir el sonido.")
     except Exception as e:
-        st.error(f"Error de antena: {e}")
+        st.error("Error: Asegurate de estar en el Wi-Fi de la banda.")
