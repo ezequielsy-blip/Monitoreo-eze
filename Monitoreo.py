@@ -2,65 +2,59 @@ import streamlit as st
 import socket
 
 # Configuración de la App
-st.set_page_config(page_title="Monitoreo Eze - Cumbia", page_icon="🎼", layout="wide")
+st.set_page_config(page_title="Monitoreo Eze - Full Cumbia", page_icon="🎼", layout="wide")
 
-# Estilo Personalizado
+# Estilo para que se vea profesional en el celular
 st.markdown("""
     <style>
-    .stSlider { margin-bottom: 20px; }
-    h1 { color: #FFD700; text-align: center; text-shadow: 2px 2px #000; }
-    .stButton>button { background-color: #28a745; color: white; font-weight: bold; }
+    .stSlider { margin-bottom: 15px; }
+    h1 { color: #FFD700; text-align: center; text-shadow: 2px 2px #000; font-size: 24px; }
+    .stButton>button { background-color: #28a745; color: white; border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🎹 Monitoreo Norteño Eze 🎤")
 
-# --- BUSCADOR DE DISPOSITIVOS ---
+# --- SECCIÓN DE CONEXIÓN (Buscador) ---
 with st.expander("🔍 CONECTAR CON NETBOOK (LOGISTICA)", expanded=False):
-    if st.button("ESCANEAR WI-FI"):
+    if st.button("ESCANEAR RED WI-FI"):
         try:
-            # Obtención de IP para el buscador
+            # Lógica para detectar la IP en la red local
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip_local = s.getsockname()[0]
             s.close()
-            st.success(f"Conectado al Wi-Fi. Tu IP: {ip_local}")
-            st.info("Netbook 'LOGISTICA' detectada. Lista para recibir mezcla.")
+            st.success(f"Conectado. Tu IP: {ip_local}")
+            st.info("Buscando Netbook para vincular con APP_STOCK.PY...")
         except:
-            st.error("Error de conexión. Verificá el Wi-Fi.")
+            st.error("Asegurate de estar en el mismo Wi-Fi que la Netbook.")
 
 st.divider()
 
-# --- MEZCLADORA DOBLE (Cumbia Norteña) ---
-st.subheader("🎚️ Control de Mezcla")
+# --- MEZCLADORA COMPLETA (15 CANALES) ---
+st.subheader("🎚️ Consola de Mezcla")
 
-# Definimos los instrumentos típicos x2
+# Lista de instrumentos ampliada con los 3 coros
 instrumentos = [
     "ACORDEÓN 1", "ACORDEÓN 2", 
     "OCTAPAD 1", "OCTAPAD 2",
     "GUITARRA 1", "GUITARRA 2",
     "BAJO 1", "BAJO 2",
     "VOZ LÍDER", "ANIMACIÓN",
-    "GÜIRO 1", "GÜIRO 2"
+    "GÜIRO 1", "GÜIRO 2",
+    "CORO 1", "CORO 2", "CORO 3"
 ]
 
-# Creamos 3 columnas para que entren todos en el celu
-col1, col2, col3 = st.columns(3)
+# Distribución en 3 columnas para que sea fácil de scrollear en el celu
+cols = st.columns(3)
 
 for i, inst in enumerate(instrumentos):
-    if i % 3 == 0:
-        with col1:
-            st.slider(inst, 0, 100, 50, key=inst)
-    elif i % 3 == 1:
-        with col2:
-            st.slider(inst, 0, 100, 50, key=inst)
-    else:
-        with col3:
-            st.slider(inst, 0, 100, 50, key=inst)
+    with cols[i % 3]:
+        st.slider(inst, 0, 100, 50, key=f"slider_{inst}")
 
 st.divider()
 
 # --- BOTÓN DE ENVÍO ---
-if st.button("🚀 ENVIAR MEZCLA A REAPER", use_container_width=True):
+if st.button("🚀 ACTUALIZAR MEZCLA EN REAPER", use_container_width=True):
     st.balloons()
-    st.toast("Actualizando niveles en APP_STOCK.PY...")
+    st.toast("Enviando niveles a la Netbook...")
