@@ -1,56 +1,46 @@
 import streamlit as st
 import socket
-import concurrent.futures
 
 st.set_page_config(page_title="Monitoreo ENIGMA", layout="wide")
 st.title("🎹 Monitoreo ENIGMA")
 
-# --- BUSCADOR QUE ESCANEA TODO ---
-def escanear(ip):
+# --- BUSCADOR UNIVERSAL POR BROADCAST ---
+def busqueda_total():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(0.05)
-        s.sendto("DAME_IP".encode(), (ip, 5005))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) # Permiso para gritar a todos
+        s.settimeout(2.0) # Esperamos 2 segundos a que alguien responda
+        
+        # Gritamos a toda la red en el puerto 5005
+        s.sendto("BUSCAR_CONSOLA_ENIGMA".encode(), ('<broadcast>', 5005))
+        
         data, addr = s.recvfrom(1024)
-        if data.decode() == "SOY_ENIGMA":
-            return ip
-    except:
+        if data.decode() == "AQUI_ESTA_EL_RECEPTOR":
+            return addr[0]
+    except Exception as e:
         return None
+    return None
 
-if st.button("🔍 BUSCAR CONSOLA AUTOMÁTICAMENTE", use_container_width=True):
-    # Obtiene la IP de la red local
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    mi_ip = s.getsockname()[0]
-    s.close()
-    
-    prefijo = ".".join(mi_ip.split(".")[:-1]) + "."
-    st.info(f"Buscando en red local: {prefijo}x")
-    
-    # Prueba las 254 IPs al mismo tiempo
-    ips = [f"{prefijo}{i}" for i in range(1, 255)]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-        resultados = list(executor.map(escanear, ips))
-    
-    final = next((ip for ip in resultados if ip), None)
-    if final:
-        st.session_state['ip_enigma'] = final
-        st.success(f"✅ ¡Consola encontrada en {final}!")
+if st.button("🔍 CONECTAR AUTOMÁTICAMENTE (TODO O NADA)", use_container_width=True):
+    ip_encontrada = busqueda_total()
+    if ip_encontrada:
+        st.session_state['ip_central'] = ip_encontrada
+        st.success(f"✅ ¡CONECTADO EXITOSAMENTE A {ip_encontrada}!")
     else:
-        st.error("No se encontró nada. ¿Están en el mismo Wi-Fi?")
+        st.error("No se encontró nada. Verificá que el Receptor esté en PLAY y en el mismo Wi-Fi.")
 
 st.divider()
 
-# Sliders (Sin NameError)
-insts = ["TECLA 1", "OCTAPAD 2", "BAJO 1", "VOZ", "COROS"]
-vals = {i: st.slider(i, 0, 100, 50, key=i) for i in insts}
+# Sliders (15 canales para ENIGMA)
+instrumentos = ["TECLA 1", "TECLA 2", "OCTAPAD 1", "OCTAPAD 2", "BAJO 1", "BAJO 2", "GUITARRA 1", "GUITARRA 2", "VOZ LÍDER", "ANIMACIÓN", "GÜIRO 1", "CORO 1", "CORO 2"]
+valores = {inst: st.slider(inst, 0, 100, 50, key=inst) for inst in instrumentos}
 
-if st.button("🚀 ACTUALIZAR"):
-    dest = st.session_state.get('ip_enigma')
-    if dest:
+if st.button("🚀 ACTUALIZAR MEZCLA"):
+    ip_destino = st.session_state.get('ip_central')
+    if ip_destino:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        for k, v in vals.items():
-            sock.sendto(f"{k}:{v}".encode(), (dest, 5005))
-        st.toast("✅ Enviado")
+        for inst, nivel in valores.items():
+            sock.sendto(f"{inst}:{nivel}".encode(), (ip_destino, 5005))
+        st.toast(f"Mezcla enviada a {ip_destino}")
     else:
-        st.warning("Primero buscá la consola.")
+        st.warning("Primero debés presionar el botón de CONECTAR.")
