@@ -1,8 +1,8 @@
-fimport streamlit as st
+import streamlit as st
 import socket
 
 # Configuración de la App
-st.set_page_config(page_title="Monitoreo enigma - Full Cumbia", page_icon="🎼", layout="wide")
+st.set_page_config(page_title="Monitoreo Enigma", page_icon="🎼", layout="wide")
 
 # Estilo para que se vea profesional en el celular
 st.markdown("""
@@ -19,24 +19,22 @@ st.title("🎹 Monitoreo ENIGMA 🎤")
 with st.expander("🔍 CONECTAR CON NETBOOK (LOGISTICA)", expanded=False):
     if st.button("ESCANEAR RED WI-FI"):
         try:
-            # Lógica para detectar la IP en la red local
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip_local = s.getsockname()[0]
             s.close()
             st.success(f"Conectado. Tu IP: {ip_local}")
-            st.info("Buscando Netbook para vincular...")
+            st.info("Buscando Netbook para vincular con APP_STOCK.PY...")
         except:
             st.error("Asegurate de estar en el mismo Wi-Fi que la Netbook.")
 
 st.divider()
 
-# --- MEZCLADORA COMPLETA (15 CANALES) ---
+# --- MEZCLADORA COMPLETA ---
 st.subheader("🎚️ Consola de Mezcla")
 
-# Lista de instrumentos ampliada con los 3 coros
 instrumentos = [
-    "tecla 1", "tecla 2"
+    "TECLA 1", "TECLA 2", 
     "OCTAPAD 1", "OCTAPAD 2",
     "GUITARRA 1", "GUITARRA 2",
     "BAJO 1", "BAJO 2",
@@ -45,16 +43,15 @@ instrumentos = [
     "CORO 1", "CORO 2", "CORO 3"
 ]
 
-# Distribución en 3 columnas para que sea fácil de scrollear en el celu
 cols = st.columns(3)
 
 for i, inst in enumerate(instrumentos):
     with cols[i % 3]:
+        # Usamos el nombre del instrumento como clave única
         st.slider(inst, 0, 100, 50, key=f"slider_{inst}")
 
 st.divider()
 
-# --- BOTÓN DE ENVÍO ---
 if st.button("🚀 ACTUALIZAR MEZCLA EN REAPER", use_container_width=True):
     st.balloons()
     st.toast("Enviando niveles a la Netbook...")
