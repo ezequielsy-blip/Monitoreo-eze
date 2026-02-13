@@ -1,34 +1,52 @@
 import streamlit as st
 import socket
+import concurrent.futures
 
-st.set_page_config(page_title="Selector ENIGMA", page_icon="🎧")
-st.title("🎧 Selector de Monitoreo ENIGMA")
+st.set_page_config(page_title="Mi Mezcla ENIGMA")
+st.title("🎧 Mi Monitoreo ENIGMA")
 
-# Lista de canales disponibles en el Reaper
-canales = {
-    "CANAL 1: TECLAS": 1,
-    "CANAL 2: OCTAPAD": 2,
-    "CANAL 3: BAJO": 3,
-    "CANAL 4: GUITARRA": 4,
-    "CANAL 5: VOZ LÍDER": 5,
-    "CANAL 6: COROS": 6
-}
-
-st.subheader("Seleccioná tu mezcla personal:")
-seleccion = st.selectbox("¿Quién sos hoy?", list(canales.keys()))
-
-if st.button("🔊 CONECTAR MI MONITOREO", use_container_width=True):
+# --- BUSCADOR DE PC (Evita confusión con otros celus) ---
+def buscar_pc(ip):
     try:
-        # Aquí la app le avisa a la Netbook qué canal rutear por el cable virtual
-        canal_id = canales[seleccion]
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.1)
+        s.sendto("QUIEN_ES_LA_PC".encode(), (ip, 5005))
+        data, addr = s.recvfrom(1024)
+        if data.decode() == "SOY_LA_PC_CENTRAL":
+            return ip
+    except:
+        return None
+
+if st.button("🔍 ENCONTRAR CONSOLA CENTRAL", use_container_width=True):
+    with st.spinner("Buscando a la PC en la red..."):
+        # Detecta IP local ignorando el 4G
+        s_temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s_temp.connect(("8.8.8.8", 80))
+        base_ip = ".".join(s_temp.getsockname()[0].split(".")[:-1]) + "."
+        s_temp.close()
         
-        # IP de la Netbook (Asumiendo que estás en su Hotspot o Wi-Fi)
-        IP_NETBOOK = "192.168.43.1" 
+        ips = [f"{base_ip}{i}" for i in range(1, 255)]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            resultados = list(executor.map(buscar_pc, ips))
         
+        pc_ip = next((ip for ip in resultados if ip), None)
+        if pc_ip:
+            st.session_state['pc_ip'] = pc_ip
+            st.success(f"✅ Conectado a la PC: {pc_ip}")
+        else:
+            st.error("❌ No se encontró la PC. Revisá el Wi-Fi.")
+
+st.divider()
+
+# --- CONTROL DEL MÚSICO ---
+if 'pc_ip' in st.session_state:
+    canal = st.selectbox("Elegí tu número de mezcla:", [f"Canal {i}" for i in range(1, 11)])
+    vol_master = st.slider("Volumen Maestro de tus Auriculares", 0, 100, 80)
+    
+    if st.button("🔊 APLICAR VOLUMEN"):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.sendto(f"SET_MONITOR_CHANNEL:{canal_id}".encode(), (IP_NETBOOK, 5005))
-        
-        st.success(f"✅ Escuchando {seleccion}. ¡Ponete los auriculares!")
-        st.info("Recordá tener AudioRelay abierto para recibir el sonido.")
-    except Exception as e:
-        st.error("Error: Asegurate de estar en el Wi-Fi de la banda.")
+        msg = f"VOL_MASTER:{canal}:{vol_master}"
+        sock.sendto(msg.encode(), (st.session_state['pc_ip'], 5005))
+        st.toast(f"Volumen de {canal} actualizado")
+else:
+    st.info("💡 Presioná 'ENCONTRAR CONSOLA' para empezar.")
