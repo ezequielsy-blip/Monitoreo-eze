@@ -1,4 +1,4 @@
-import streamlit as st
+fimport streamlit as st
 import socket
 
 # Configuración de la App
@@ -25,7 +25,7 @@ with st.expander("🔍 CONECTAR CON NETBOOK (LOGISTICA)", expanded=False):
             ip_local = s.getsockname()[0]
             s.close()
             st.success(f"Conectado. Tu IP: {ip_local}")
-            st.info("Buscando Netbook para vincular con APP_STOCK.PY...")
+            st.info("Buscando Netbook para vincular...")
         except:
             st.error("Asegurate de estar en el mismo Wi-Fi que la Netbook.")
 
